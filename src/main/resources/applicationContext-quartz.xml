@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd"
+       default-lazy-init="true">
+
+    <description>Quartz的任务配置</description>
+    <!--将所有的定时任务都管理起来，包括@Scheduled注解的任务，需要将配置文件中<task:annotation-driven/>去掉，我们手动的启动注解任务 -->
+    <!--<task:scheduler id="scheduler"  />-->
+    <!--<task:annotation-driven scheduler="scheduler"/>-->
+    <bean class="cn.wuxia.project.scheduler.QuartzHandler" id="quartzHandler">
+        <property name="disableSchedule" value="${quartz.disable:false}"/>
+    </bean>
+    <task:scheduled-tasks>
+        <task:scheduled ref="quartzHandler" method="init" cron="0 0/1 * ? * *"/>
+        <task:scheduled ref="quartzHandler" method="chageLoggerLevel" cron="0 0/1 * ? * *"/>
+    </task:scheduled-tasks>
+    <bean id="jobFactory" class="cn.wuxia.project.scheduler.util.JobFactory"></bean>
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="schedulerName" value="${system.type}-QuartzScheduler" />
+        <property name="dataSource">
+            <ref bean="baseDataSource"/>
+        </property>
+        <property name="jobFactory" ref="jobFactory"/>
+        <property name="applicationContextSchedulerContextKey" value="applicationContext"/>
+        <!--也可以在quartz.properties中配置-->
+        <property name="quartzProperties">
+            <props>
+                <prop key="org.quartz.scheduler.instanceName">${system.type:main}-scheduler</prop>
+                <prop key="org.quartz.scheduler.instanceId">AUTO</prop>
+                <!-- 线程池配置 -->
+                <prop key="org.quartz.threadPool.class">org.quartz.simpl.SimpleThreadPool</prop>
+                <prop key="org.quartz.threadPool.threadCount">20</prop>
+                <prop key="org.quartz.threadPool.threadPriority">5</prop>
+                <prop key="org.quartz.jobStore.misfireThreshold">120000</prop>
+                <!-- JobStore 配置 -->
+                <prop key="org.quartz.jobStore.class">org.quartz.impl.jdbcjobstore.JobStoreTX</prop>
+                <prop key="org.quartz.jobStore.driverDelegateClass">org.quartz.impl.jdbcjobstore.StdJDBCDelegate</prop>
+                <!-- 集群配置 -->
+                <prop key="org.quartz.jobStore.isClustered">true</prop>
+                <prop key="org.quartz.jobStore.clusterCheckinInterval">15000</prop>
+                <prop key="org.quartz.jobStore.maxMisfiresToHandleAtATime">1</prop>
+                <!-- 数据表设置 -->
+                <prop key="org.quartz.jobStore.tablePrefix">qrtz_</prop>
+            </props>
+        </property>
+        <!--可选，QuartzScheduler启动时更新己存在的Job，这样就不用每次修改targetObject后删除qrtz_job_details表对应记录了 -->
+        <property name="overwriteExistingJobs" value="true"/>
+        <!-- 启动时延期10秒开始任务 -->
+        <property name="startupDelay" value="10"/>
+    </bean>
+</beans>
