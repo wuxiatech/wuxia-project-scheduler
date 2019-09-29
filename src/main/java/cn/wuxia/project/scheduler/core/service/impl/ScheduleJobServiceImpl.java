@@ -123,7 +123,7 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
                 super.save(scheduleJob);
                 logger.info("启动成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
             } else {
-                logger.warn("当前任务状态：{}, 当前任务库配置：{}", getTaskStatus(scheduleJob), scheduleJob.getStatus().getDisplayName());
+                logger.warn("当前任务：{}，状态：{}, 当前任务配置状态：{}", scheduleJob.getAliasName(), getTaskStatus(scheduleJob), scheduleJob.getStatus().getDisplayName());
             }
 
         } else {

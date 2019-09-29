@@ -7,12 +7,12 @@ import cn.wuxia.project.scheduler.util.SchedulerConstants;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * 任务工厂类,并发
+ * @author songlin
  */
 public class AsyncJob implements Job {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -25,7 +25,7 @@ public class AsyncJob implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void execute(JobExecutionContext jobExecutionContext) {
         JobDataMap mergedJobDataMap = jobExecutionContext.getMergedJobDataMap();
         JobDetailBean detailBean = (JobDetailBean) mergedJobDataMap.get(SchedulerConstants.SCHEDULER_JOB_PARAMETER);
         if (disableJob) {
@@ -33,10 +33,12 @@ public class AsyncJob implements Job {
             return;
         }
         logger.info("执行:{}.{} ,参数：{}", getClass().getName(), detailBean.getMethod(), detailBean.getParam());
-        if (detailBean.getParam() != null) {
+        try {
             ReflectionUtil.invokeMethod(this, detailBean.getMethod(), new Class[]{String.class}, new Object[]{detailBean.getParam()});
-        } else {
+        } catch (IllegalArgumentException e) {
             ReflectionUtil.invokeMethod(this, detailBean.getMethod(), new Class[]{}, new Object[]{});
+        } catch (Exception e) {
+            logger.error("任务执行失败", e);
         }
     }
 }
