@@ -1,13 +1,14 @@
 package cn.wuxia.project.scheduler.core.service.impl;
 
+import cn.wuxia.common.exception.AppDaoException;
 import cn.wuxia.common.exception.AppServiceException;
 import cn.wuxia.common.util.StringUtil;
+import cn.wuxia.project.common.dao.CommonMongoDao;
+import cn.wuxia.project.common.service.impl.CommonMongoServiceImpl;
 import cn.wuxia.project.scheduler.core.dao.ScheduleJobMongoDao;
 import cn.wuxia.project.scheduler.core.entity.ScheduleJob;
 import cn.wuxia.project.scheduler.core.service.ScheduleJobService;
 import cn.wuxia.project.scheduler.util.ScheduleUtils;
-import cn.wuxia.project.common.dao.CommonMongoDao;
-import cn.wuxia.project.common.service.impl.CommonMongoServiceImpl;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,7 +70,7 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
                 ScheduleUtils.updateScheduleJob(scheduler, job);
             }
             super.save(job);
-        } catch (SchedulerException e) {
+        } catch (SchedulerException | AppDaoException e) {
             throw new AppServiceException("启动失败", e);
         }
         return job;
@@ -93,7 +94,11 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
         } else {
             //否则，只改变记录状态, 等待其他系统异步启动
             scheduleJob.setStatus(ScheduleJob.JobState.DELETED);
-            super.save(scheduleJob);
+            try {
+                super.save(scheduleJob);
+            } catch (AppDaoException e) {
+                throw new AppServiceException("删除失败", e);
+            }
         }
     }
 
@@ -116,12 +121,12 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
             if (ScheduleJob.JobState.PAUSED.compareTo(getTaskStatus(scheduleJob)) == 0) {
                 try {
                     ScheduleUtils.resumeJob(scheduler, scheduleJob);
-                } catch (SchedulerException e) {
+                    scheduleJob.setStatus(getTaskStatus(scheduleJob));
+                    super.save(scheduleJob);
+                    logger.info("启动成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
+                } catch (SchedulerException | AppDaoException e) {
                     throw new AppServiceException("恢复失败", e);
                 }
-                scheduleJob.setStatus(getTaskStatus(scheduleJob));
-                super.save(scheduleJob);
-                logger.info("启动成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
             } else {
                 logger.warn("当前任务：{}，状态：{}, 当前任务配置状态：{}", scheduleJob.getAliasName(), getTaskStatus(scheduleJob), scheduleJob.getStatus().getDisplayName());
             }
@@ -129,7 +134,11 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
         } else {
             //否则，只改变记录状态, 等待其他系统异步启动
             scheduleJob.setStatus(ScheduleJob.JobState.NORMAL);
-            super.save(scheduleJob);
+            try {
+                super.save(scheduleJob);
+            } catch (AppDaoException e) {
+                throw new AppServiceException("恢复失败", e);
+            }
         }
     }
 
@@ -160,7 +169,7 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
                 logger.info("创建成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
                 super.save(scheduleJob);
             }
-        } catch (SchedulerException e) {
+        } catch (SchedulerException | AppDaoException e) {
             throw new AppServiceException("创建失败", e);
         }
     }
@@ -212,11 +221,11 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
             if (ScheduleJob.JobState.NORMAL.compareTo(getTaskStatus(scheduleJob)) == 0) {
                 try {
                     ScheduleUtils.pauseJob(scheduler, scheduleJob);
-                } catch (SchedulerException e) {
+                    scheduleJob.setStatus(getTaskStatus(scheduleJob));
+                    super.save(scheduleJob);
+                } catch (SchedulerException | AppDaoException e) {
                     throw new AppServiceException("暂停失败", e);
                 }
-                scheduleJob.setStatus(getTaskStatus(scheduleJob));
-                super.save(scheduleJob);
                 logger.info("暂停成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
             } else {
                 logger.info("当前任务状态：{}, 当前任务库配置：{}", getTaskStatus(scheduleJob), scheduleJob.getStatus());
@@ -224,7 +233,11 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
         } else {
             //否则，只改变记录状态, 等待其他系统异步暂停
             scheduleJob.setStatus(ScheduleJob.JobState.PAUSED);
-            super.save(scheduleJob);
+            try {
+                super.save(scheduleJob);
+            } catch (AppDaoException e) {
+                throw new AppServiceException("暂停失败", e);
+            }
         }
     }
 

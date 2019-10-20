@@ -5,12 +5,12 @@
     <parent>
         <groupId>cn.wuxia.project</groupId>
         <artifactId>wuxia.project-parent</artifactId>
-        <version>2.2.0</version>
+        <version>2.3.0</version>
     </parent>
     <groupId>cn.wuxia.project</groupId>
     <artifactId>wuxia.project-scheduler</artifactId>
     <name>Project Scheduler</name>
-    <version>2.2.1</version>
+    <version>2.3.0</version>
     <properties>
     </properties>
     <packaging>jar</packaging>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>cn.wuxia.project</groupId>
             <artifactId>wuxia.project-core</artifactId>
-            <version>${project.parent.version}</version>
+            <version>[2.3.0,)</version>
         </dependency>
 
         <!-- TIMER -->
