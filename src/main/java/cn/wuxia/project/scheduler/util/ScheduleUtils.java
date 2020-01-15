@@ -220,7 +220,7 @@ public class ScheduleUtils {
         CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpression);
 
         CronTrigger trigger = (CronTrigger) scheduler.getTrigger(triggerKey);
-        if(trigger == null) return;
+        if(trigger == null){ return;}
         //按新的cronExpression表达式重新构建trigger
         trigger = trigger.getTriggerBuilder().withIdentity(triggerKey).withSchedule(scheduleBuilder).build();
 
@@ -233,7 +233,7 @@ public class ScheduleUtils {
      *
      * @param scheduler
      * @param scheduleJob
-     * @throws ScheduolerException
+     * @throws SchedulerException
      */
     public static void deleteScheduleJob(Scheduler scheduler, ScheduleJob scheduleJob) throws SchedulerException {
         scheduler.deleteJob(getJobKey(scheduleJob.getName(), scheduleJob.getGroup()));

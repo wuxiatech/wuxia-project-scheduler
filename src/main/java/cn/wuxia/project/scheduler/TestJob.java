@@ -6,6 +6,6 @@ public class TestJob extends AsyncJob {
 
 
     public void test() {
-        logger.info("执行:{}", disableJob);
+        logger.info("执行:{}, {}",system,  disableJob);
     }
 }

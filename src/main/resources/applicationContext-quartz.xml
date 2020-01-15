@@ -3,22 +3,27 @@
        xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd"
-       default-lazy-init="true">
+       >
 
     <description>Quartz的任务配置</description>
     <!--将所有的定时任务都管理起来，包括@Scheduled注解的任务，需要将配置文件中<task:annotation-driven/>去掉，我们手动的启动注解任务 -->
     <!--<task:scheduler id="scheduler"  />-->
     <!--<task:annotation-driven scheduler="scheduler"/>-->
     <bean class="cn.wuxia.project.scheduler.QuartzHandler" id="quartzHandler">
+        <property name="system" value="${system.type}"/>
         <property name="disableSchedule" value="${quartz.disable:false}"/>
     </bean>
-    <task:scheduled-tasks>
-        <task:scheduled ref="quartzHandler" method="init" cron="0 0/1 * ? * *"/>
-        <task:scheduled ref="quartzHandler" method="chageLoggerLevel" cron="0 0/1 * ? * *"/>
-    </task:scheduled-tasks>
+<!--    <bean class="cn.wuxia.project.scheduler.TimerHandler" init-method="run">-->
+<!--        <property name="quartzHandler" ref="quartzHandler"/>-->
+<!--    </bean>-->
+    <!-- 下面方面不清楚从何时起不会每分钟执行一次，估将其注释，使用上面jdk自带定时任务 -->
+        <task:scheduled-tasks>
+            <task:scheduled ref="quartzHandler" method="init" cron="0 */1 * * * ?"/>
+            <task:scheduled ref="quartzHandler" method="chageLoggerLevel" cron="30 */1 * * * ?"/>
+        </task:scheduled-tasks>
     <bean id="jobFactory" class="cn.wuxia.project.scheduler.util.JobFactory"></bean>
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-        <property name="schedulerName" value="${system.type}-QuartzScheduler" />
+        <property name="schedulerName" value="${system.type}-QuartzScheduler"/>
         <property name="dataSource">
             <ref bean="baseDataSource"/>
         </property>

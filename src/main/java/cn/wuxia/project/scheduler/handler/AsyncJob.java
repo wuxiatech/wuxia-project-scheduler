@@ -18,10 +18,11 @@ public class AsyncJob implements Job {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected boolean disableJob = false;
-
+    protected String system;
     public AsyncJob() {
         QuartzHandler quartzHandler = SpringContextHolder.getBean(QuartzHandler.class);
         disableJob = quartzHandler.isDisableSchedule();
+        system = quartzHandler.getSystem();
     }
 
     @Override
