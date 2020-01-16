@@ -5,22 +5,36 @@
     <parent>
         <groupId>cn.wuxia.project</groupId>
         <artifactId>wuxia.project-parent</artifactId>
-        <version>2.4.0</version>
+        <version>2.4.2</version>
     </parent>
     <groupId>cn.wuxia.project</groupId>
     <artifactId>wuxia.project-scheduler</artifactId>
     <name>Project Scheduler</name>
-    <version>2.4.0</version>
+    <version>2.4.2</version>
     <properties>
         <quartz.version>2.3.2</quartz.version>
     </properties>
     <packaging>jar</packaging>
-    <url>https://github.com/wuxiatech/wuxia-project-scheduler.git</url>
+    <url>https://github.com/wuxiatech/wuxia-project-scheduler</url>
+    <developers>
+        <developer>
+            <name>lisonglin</name>
+            <email>237550195@qq.com</email>
+            <id>songlin</id>
+            <organization>wuxia.tech</organization>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>https://github.com/wuxiatech/wuxia-project-scheduler/blob/master/LICENSE</url>
+        </license>
+    </licenses>
     <dependencies>
         <dependency>
             <groupId>cn.wuxia.project</groupId>
             <artifactId>wuxia.project-core</artifactId>
-            <version>[2.4.0,)</version>
+            <version>[2.4.2,)</version>
         </dependency>
 
         <!-- TIMER -->
