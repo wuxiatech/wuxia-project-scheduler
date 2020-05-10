@@ -82,7 +82,7 @@ public class ScheduleJob extends ModifyInfoMongoEntity implements Serializable {
     private String runSystem;
 
     public static enum JobState {
-        NONE("新建"), NORMAL("正常"), PAUSED("已暂停"), COMPLETE("已完成"), ERROR("错误"), BLOCKED("阻塞"),DELETED("已删除");
+        NONE("新建"), NORMAL("正常"), PAUSED("已暂停"), COMPLETE("已完成"), ERROR("错误"),RESUME("恢复"), BLOCKED("阻塞"),DELETED("已删除");
 
         private String displayName;
 

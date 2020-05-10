@@ -62,7 +62,8 @@ public class QuartzHandler {
                     break;
                 case COMPLETE:
                     break;
-                case ERROR:
+                case RESUME:
+                    scheduleJobService.resumeTask(job);
                     break;
                 case BLOCKED:
                     break;

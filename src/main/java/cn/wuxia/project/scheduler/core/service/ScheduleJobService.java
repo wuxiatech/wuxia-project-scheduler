@@ -67,6 +67,17 @@ public interface ScheduleJobService extends CommonService<ScheduleJob, String> {
     void paulTask(String id);
 
     /**
+     * 重新执行
+     * @param job
+     */
+    void resumeTask(ScheduleJob job);
+
+    /**
+     * 重新执行
+     * @param id
+     */
+    void resumeTask(String id);
+    /**
      * 获取实时的状态
      * @param id
      * @return

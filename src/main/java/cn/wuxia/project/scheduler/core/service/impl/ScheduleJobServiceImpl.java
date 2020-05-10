@@ -118,14 +118,25 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
          */
         if (StringUtil.equalsIgnoreCase(system, scheduleJob.getRunSystem())) {
             //当前任务为暂停状态方可启动
-            if (ScheduleJob.JobState.PAUSED.compareTo(getTaskStatus(scheduleJob)) == 0) {
+            ScheduleJob.JobState jobState = getTaskStatus(scheduleJob);
+            if (ScheduleJob.JobState.PAUSED.compareTo(jobState) == 0) {
                 try {
                     ScheduleUtils.resumeJob(scheduler, scheduleJob);
-                    scheduleJob.setStatus(getTaskStatus(scheduleJob));
+                    jobState = getTaskStatus(scheduleJob);
+                    scheduleJob.setStatus(jobState);
                     super.save(scheduleJob);
                     logger.info("启动成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
-                } catch (SchedulerException | AppDaoException e) {
-                    throw new AppServiceException("恢复失败", e);
+                } catch (SchedulerException e) {
+                    jobState = getTaskStatus(scheduleJob);
+                    logger.warn("当前任务：{}，状态：{}, 启动失败信息：{}", scheduleJob.getAliasName(), jobState, e.getMessage());
+                    scheduleJob.setStatus(ScheduleJob.JobState.ERROR);
+                    try {
+                        super.save(scheduleJob);
+                    } catch (AppDaoException ex) {
+                        throw new AppServiceException("启动失败", ex);
+                    }
+                } catch (AppDaoException e) {
+                    throw new AppServiceException("启动失败", e);
                 }
             } else {
                 logger.warn("当前任务：{}，状态：{}, 当前任务配置状态：{}", scheduleJob.getAliasName(), getTaskStatus(scheduleJob), scheduleJob.getStatus().getDisplayName());
@@ -245,6 +256,46 @@ public class ScheduleJobServiceImpl extends CommonMongoServiceImpl<ScheduleJob, 
     public void paulTask(String id) {
         paulTask(findById(id));
 
+    }
+
+    @Override
+    public void resumeTask(ScheduleJob scheduleJob) {
+        if (scheduleJob == null) {
+            return;
+        }
+        /**
+         * 如果是当前系统的任务， 同步执行
+         */
+        if (StringUtil.equalsIgnoreCase(system, scheduleJob.getRunSystem())) {
+            /**
+             * 判断当前任务为启动状态方可暂停
+             */
+            if (ScheduleJob.JobState.ERROR.compareTo(getTaskStatus(scheduleJob)) == 0) {
+                try {
+                    ScheduleUtils.resumeJob(scheduler, scheduleJob);
+                    scheduleJob.setStatus(getTaskStatus(scheduleJob));
+                    super.save(scheduleJob);
+                } catch (SchedulerException | AppDaoException e) {
+                    throw new AppServiceException("{}重新开始失败", e, scheduleJob.getAliasName());
+                }
+                logger.info("重新开始成功：{}, {}", scheduleJob.getAliasName(), scheduleJob.getStatus().getDisplayName());
+            } else {
+                logger.info("当前任务：{}, 状态：{}, 当前任务库配置：{}", scheduleJob.getAliasName(), getTaskStatus(scheduleJob), scheduleJob.getStatus());
+            }
+        } else {
+            //否则，只改变记录状态, 等待其他系统异步恢复
+            scheduleJob.setStatus(ScheduleJob.JobState.RESUME);
+            try {
+                super.save(scheduleJob);
+            } catch (AppDaoException e) {
+                throw new AppServiceException("{}重新开始失败", e, scheduleJob.getAliasName());
+            }
+        }
+    }
+
+    @Override
+    public void resumeTask(String id) {
+        resumeTask(findById(id));
     }
 
     @Override
