@@ -24,7 +24,7 @@ public class ScheduleJobMongoDao extends BaseCommonMongoDao<ScheduleJob, String>
         Criteria criteria = new Criteria();
         criteria.orOperator(Criteria.where("status").is(ScheduleJob.JobState.NONE), Criteria.where("status").is(ScheduleJob.JobState.NORMAL));
         Query query = Query.query(Criteria.where("runSystem").is(systemType).andOperator(criteria));
-        query.with(new Sort("order_"));
+        query.with( Sort.by("order_"));
         return find(query);
     }
 
